@@ -8,25 +8,61 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # ------------------------------------------------------
+      # Hämta repository
+      # ------------------------------------------------------
+
       - name: Hämta repository
         uses: actions/checkout@v4
 
-      - name: Cachea APT-paket
+      # ------------------------------------------------------
+      # Cache för hela TinyTeX
+      # ------------------------------------------------------
+
+      - name: Cachea TinyTeX
+        id: cache-tinytex
         uses: actions/cache@v4
         with:
-          path: /var/cache/apt/archives
-          key: ${{ runner.os }}-texlive-apt-v1
-          restore-keys: |
-            ${{ runner.os }}-texlive-apt-
+          path: ~/.TinyTeX
+          key: ${{ runner.os }}-tinytex-v1
 
-      - name: Installera LaTeX
+      # ------------------------------------------------------
+      # Installera TinyTeX om cachen saknas
+      # ------------------------------------------------------
+
+      - name: Installera TinyTeX
+        if: steps.cache-tinytex.outputs.cache-hit != 'true'
         run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            texlive-latex-base \
-            texlive-latex-recommended \
-            texlive-latex-extra \
-            texlive-lang-european
+          wget -qO- \
+            "https://yihui.org/tinytex/install-bin-unix.sh" \
+            | sh
+
+      # ------------------------------------------------------
+      # Lägg TinyTeX i PATH
+      # ------------------------------------------------------
+
+      - name: Lägg till TinyTeX i PATH
+        run: |
+          echo "$HOME/.TinyTeX/bin/x86_64-linux" >> $GITHUB_PATH
+
+      # ------------------------------------------------------
+      # Installera de LaTeX-paket som vår mall behöver
+      # ------------------------------------------------------
+
+      - name: Installera LaTeX-paket
+        run: |
+          tlmgr install \
+            babel-swedish \
+            graphics \
+            tools \
+            booktabs \
+            tabularx \
+            geometry \
+            xcolor
+
+      # ------------------------------------------------------
+      # Kompilera PDF
+      # ------------------------------------------------------
 
       - name: Kompilera LaTeX
         run: |
@@ -35,6 +71,10 @@ jobs:
             -halt-on-error \
             -file-line-error \
             Faktureringsunderlag.tex
+
+      # ------------------------------------------------------
+      # Spara PDF
+      # ------------------------------------------------------
 
       - name: Spara PDF
         uses: actions/upload-artifact@v4
