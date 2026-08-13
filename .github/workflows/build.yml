@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
 
     container:
-      image: danteev/texlive:2025
+      image: danteev/texlive:latest
 
     steps:
       - name: Hämta repository
