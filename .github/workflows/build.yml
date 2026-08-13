@@ -25,10 +25,10 @@ jobs:
           pdflatex \
             -interaction=nonstopmode \
             -halt-on-error \
-            faktureringsunderlag.tex
+            Faktureringsunderlag.tex
 
       - name: Spara PDF som artifact
         uses: actions/upload-artifact@v4
         with:
           name: Faktureringsunderlag
-          path: faktureringsunderlag.pdf
+          path: Faktureringsunderlag.pdf
