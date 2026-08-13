@@ -7,28 +7,24 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    container:
+      image: danteev/texlive:2025
+
     steps:
       - name: Hämta repository
         uses: actions/checkout@v4
-
-      - name: Installera LaTeX
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            texlive-latex-base \
-            texlive-latex-recommended \
-            texlive-latex-extra \
-            texlive-lang-european
 
       - name: Kompilera LaTeX
         run: |
           pdflatex \
             -interaction=nonstopmode \
             -halt-on-error \
+            -file-line-error \
             Faktureringsunderlag.tex
 
-      - name: Spara PDF som artifact
+      - name: Spara PDF
         uses: actions/upload-artifact@v4
         with:
           name: Faktureringsunderlag
           path: Faktureringsunderlag.pdf
+          if-no-files-found: error
