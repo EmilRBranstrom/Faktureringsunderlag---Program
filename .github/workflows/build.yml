@@ -7,12 +7,26 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    container:
-      image: danteev/texlive:latest
-
     steps:
       - name: Hämta repository
         uses: actions/checkout@v4
+
+      - name: Cachea APT-paket
+        uses: actions/cache@v4
+        with:
+          path: /var/cache/apt/archives
+          key: ${{ runner.os }}-texlive-apt-v1
+          restore-keys: |
+            ${{ runner.os }}-texlive-apt-
+
+      - name: Installera LaTeX
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            texlive-latex-base \
+            texlive-latex-recommended \
+            texlive-latex-extra \
+            texlive-lang-european
 
       - name: Kompilera LaTeX
         run: |
