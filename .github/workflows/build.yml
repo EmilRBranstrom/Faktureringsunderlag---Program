@@ -116,6 +116,9 @@ jobs:
 
     steps:
 
+      - name: Hämta repository
+        uses: actions/checkout@v4
+
       - name: Hämta PDF-filer
         uses: actions/download-artifact@v4
         with:
@@ -136,4 +139,4 @@ jobs:
 
       - name: Deploy till GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4          
+        uses: actions/deploy-pages@v4
