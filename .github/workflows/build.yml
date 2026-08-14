@@ -73,6 +73,6 @@ jobs:
       - name: Spara PDF
         uses: actions/upload-artifact@v4
         with:
-          name: Faktureringsunderlag
+          name: ${{ steps.pdf.outputs.pdf_file }}
           path: ${{ steps.pdf.outputs.pdf_file }}
           if-no-files-found: error
