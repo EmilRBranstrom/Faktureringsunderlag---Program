@@ -129,7 +129,7 @@ jobs:
       - name: Skapa Pages-mapp
         run: |
           mkdir -p pages
-          cp print.html pages/
+          cp index.html pages/
           cp pdf/*.pdf pages/
 
       - name: Publicera GitHub Pages
