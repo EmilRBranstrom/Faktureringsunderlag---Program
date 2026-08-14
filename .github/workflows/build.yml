@@ -14,13 +14,26 @@ permissions:
   id-token: write
 
 jobs:
+
+  # ==========================================================
+  # BYGG PDF
+  # ==========================================================
+
   build:
     runs-on: ubuntu-latest
 
     steps:
 
+      # --------------------------------------------------------
+      # Hämta repository
+      # --------------------------------------------------------
+
       - name: Hämta repository
         uses: actions/checkout@v4
+
+      # --------------------------------------------------------
+      # Cachea TinyTeX
+      # --------------------------------------------------------
 
       - name: Cachea TinyTeX
         id: cache-tinytex
@@ -29,6 +42,10 @@ jobs:
           path: ~/.TinyTeX
           key: ${{ runner.os }}-tinytex-v1
 
+      # --------------------------------------------------------
+      # Installera TinyTeX
+      # --------------------------------------------------------
+
       - name: Installera TinyTeX
         if: steps.cache-tinytex.outputs.cache-hit != 'true'
         run: |
@@ -36,9 +53,17 @@ jobs:
             "https://yihui.org/tinytex/install-bin-unix.sh" \
             | sh
 
+      # --------------------------------------------------------
+      # Lägg till TinyTeX i PATH
+      # --------------------------------------------------------
+
       - name: Lägg till TinyTeX i PATH
         run: |
           echo "$HOME/.TinyTeX/bin/x86_64-linux" >> $GITHUB_PATH
+
+      # --------------------------------------------------------
+      # Installera LaTeX-paket
+      # --------------------------------------------------------
 
       - name: Installera LaTeX-paket
         if: steps.cache-tinytex.outputs.cache-hit != 'true'
@@ -51,12 +76,20 @@ jobs:
             geometry \
             xcolor
 
+      # --------------------------------------------------------
+      # Kontrollera fil
+      # --------------------------------------------------------
+
       - name: Kontrollera fil
         run: |
           echo "Filen som ska kompileras:"
           echo "${{ inputs.tex_file }}"
           echo
           ls -lh "${{ inputs.tex_file }}"
+
+      # --------------------------------------------------------
+      # Kompilera LaTeX
+      # --------------------------------------------------------
 
       - name: Kompilera LaTeX
         run: |
@@ -66,14 +99,24 @@ jobs:
             -file-line-error \
             "${{ inputs.tex_file }}"
 
+      # --------------------------------------------------------
+      # Bestäm PDF-fil
+      # --------------------------------------------------------
+
       - name: Bestäm PDF-fil
         id: pdf
         shell: bash
         run: |
           tex_file="${{ inputs.tex_file }}"
           pdf_file="${tex_file%.tex}.pdf"
+
           echo "pdf_file=$pdf_file" >> "$GITHUB_OUTPUT"
+
           echo "PDF: $pdf_file"
+
+      # --------------------------------------------------------
+      # Spara PDF som artifact
+      # --------------------------------------------------------
 
       - name: Spara PDF
         uses: actions/upload-artifact@v4
@@ -81,6 +124,10 @@ jobs:
           name: ${{ steps.pdf.outputs.pdf_file }}
           path: ${{ steps.pdf.outputs.pdf_file }}
           if-no-files-found: error
+
+      # --------------------------------------------------------
+      # Publicera PDF i repository
+      # --------------------------------------------------------
 
       - name: Publicera PDF i repository
         run: |
@@ -102,8 +149,14 @@ jobs:
 
           git push origin main
 
+
+  # ==========================================================
+  # GITHUB PAGES
+  # ==========================================================
+
   deploy:
     needs: build
+
     runs-on: ubuntu-latest
 
     permissions:
@@ -116,8 +169,16 @@ jobs:
 
     steps:
 
+      # --------------------------------------------------------
+      # Hämta repository
+      # --------------------------------------------------------
+
       - name: Hämta repository
         uses: actions/checkout@v4
+
+      # --------------------------------------------------------
+      # Hämta PDF-artifact
+      # --------------------------------------------------------
 
       - name: Hämta PDF-filer
         uses: actions/download-artifact@v4
@@ -126,16 +187,56 @@ jobs:
           pattern: "*.pdf"
           merge-multiple: true
 
+      # --------------------------------------------------------
+      # Skapa Pages-mapp
+      # --------------------------------------------------------
+
       - name: Skapa Pages-mapp
         run: |
           mkdir -p pages
+
           cp index.html pages/
+
           cp pdf/*.pdf pages/
+
+      # --------------------------------------------------------
+      # Kontrollera Pages-mapp
+      # --------------------------------------------------------
+
+      - name: Kontrollera Pages-mapp
+        run: |
+          echo "========================================"
+          echo "Innehåll i Pages:"
+          echo "========================================"
+
+          find pages -maxdepth 2 -type f -print
+
+          echo
+          echo "========================================"
+          echo "Index:"
+          echo "========================================"
+
+          ls -lh pages/index.html
+
+          echo
+          echo "========================================"
+          echo "PDF-filer:"
+          echo "========================================"
+
+          ls -lh pages/*.pdf
+
+      # --------------------------------------------------------
+      # Publicera GitHub Pages
+      # --------------------------------------------------------
 
       - name: Publicera GitHub Pages
         uses: actions/upload-pages-artifact@v3
         with:
           path: pages
+
+      # --------------------------------------------------------
+      # Deploy
+      # --------------------------------------------------------
 
       - name: Deploy till GitHub Pages
         id: deployment
