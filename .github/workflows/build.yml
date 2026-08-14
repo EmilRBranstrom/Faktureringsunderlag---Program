@@ -13,16 +13,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # ------------------------------------------------------
-      # Hämta repository
-      # ------------------------------------------------------
 
       - name: Hämta repository
         uses: actions/checkout@v4
-
-      # ------------------------------------------------------
-      # Cache för hela TinyTeX
-      # ------------------------------------------------------
 
       - name: Cachea TinyTeX
         id: cache-tinytex
@@ -31,10 +24,6 @@ jobs:
           path: ~/.TinyTeX
           key: ${{ runner.os }}-tinytex-v1
 
-      # ------------------------------------------------------
-      # Installera TinyTeX om cachen saknas
-      # ------------------------------------------------------
-
       - name: Installera TinyTeX
         if: steps.cache-tinytex.outputs.cache-hit != 'true'
         run: |
@@ -42,17 +31,9 @@ jobs:
             "https://yihui.org/tinytex/install-bin-unix.sh" \
             | sh
 
-      # ------------------------------------------------------
-      # Lägg TinyTeX i PATH
-      # ------------------------------------------------------
-
       - name: Lägg till TinyTeX i PATH
         run: |
           echo "$HOME/.TinyTeX/bin/x86_64-linux" >> $GITHUB_PATH
-
-      # ------------------------------------------------------
-      # Installera LaTeX-paket om cachen saknas
-      # ------------------------------------------------------
 
       - name: Installera LaTeX-paket
         if: steps.cache-tinytex.outputs.cache-hit != 'true'
@@ -65,9 +46,12 @@ jobs:
             geometry \
             xcolor
 
-      # ------------------------------------------------------
-      # Kompilera LaTeX
-      # ------------------------------------------------------
+      - name: Kontrollera fil
+        run: |
+          echo "Filen som ska kompileras:"
+          echo "${{ inputs.tex_file }}"
+          echo
+          ls -lh "${{ inputs.tex_file }}"
 
       - name: Kompilera LaTeX
         run: |
@@ -77,19 +61,14 @@ jobs:
             -file-line-error \
             "${{ inputs.tex_file }}"
 
-      # ------------------------------------------------------
-      # Bestäm PDF-filens namn
-      # ------------------------------------------------------
-
       - name: Bestäm PDF-fil
         id: pdf
+        shell: bash
         run: |
-          pdf_file="${{ inputs.tex_file%.tex }}.pdf"
+          tex_file="${{ inputs.tex_file }}"
+          pdf_file="${tex_file%.tex}.pdf"
           echo "pdf_file=$pdf_file" >> "$GITHUB_OUTPUT"
-
-      # ------------------------------------------------------
-      # Spara PDF
-      # ------------------------------------------------------
+          echo "PDF: $pdf_file"
 
       - name: Spara PDF
         uses: actions/upload-artifact@v4
