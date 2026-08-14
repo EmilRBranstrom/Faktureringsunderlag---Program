@@ -50,14 +50,15 @@ jobs:
       # ------------------------------------------------------
 
       - name: Installera LaTeX-paket
-        run: |
-          tlmgr install \
-            babel-swedish \
-            graphics \
-            tools \
-            booktabs \
-            geometry \
-            xcolor
+  if: steps.cache-tinytex.outputs.cache-hit != 'true'
+  run: |
+    tlmgr install \
+      babel-swedish \
+      graphics \
+      tools \
+      booktabs \
+      geometry \
+      xcolor
 
       # ------------------------------------------------------
       # Kompilera PDF
